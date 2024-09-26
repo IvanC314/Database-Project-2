@@ -22,3 +22,60 @@ Install the github from [Here](github.com/datacharmer/test_db)
 │   └── DatabaseApp.java                   
 └── text_db-master/
     └── employees.sql
+
+
+
+# Information for Binary Friend
+
+user: root 
+Password: BigBoyServerProject2!
+
+This is the output when I type the tree command in the database-project-2 folder
+
+├───lib
+├───src
+└───test_db-master
+    ├───images
+    └───sakila
+
+typing ls Inside test_db-master:
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         9/25/2024  12:38 PM                images
+d-----         9/25/2024  12:38 PM                sakila
+-a----         9/25/2024  12:38 PM            989 Changelog
+-a----         9/25/2024  12:38 PM           4320 employees.sql
+-a----         9/25/2024  12:38 PM           6453 employees_partitioned.sql
+-a----         9/25/2024  12:38 PM           8147 employees_partitioned_5.1.sql
+-a----         9/25/2024  12:38 PM            260 load_departments.dump
+-a----         9/25/2024  12:38 PM       14491483 load_dept_emp.dump
+-a----         9/25/2024  12:38 PM           1138 load_dept_manager.dump
+-a----         9/25/2024  12:38 PM       18022856 load_employees.dump
+-a----         9/25/2024  12:38 PM       40773364 load_salaries1.dump
+-a----         9/25/2024  12:38 PM       40752967 load_salaries2.dump
+-a----         9/25/2024  12:38 PM       40010648 load_salaries3.dump
+-a----         9/25/2024  12:38 PM       22152044 load_titles.dump
+-a----         9/25/2024  12:38 PM           4793 objects.sql
+-a----         9/25/2024  12:38 PM           4440 README.md
+-a----         9/25/2024  12:38 PM            277 show_elapsed.sql
+-a----         9/25/2024  12:38 PM           1872 sql_test.sh
+-a----         9/25/2024  12:38 PM           4833 test_employees_md5.sql
+-a----         9/25/2024  12:38 PM           4835 test_employees_sha.sql
+-a----         9/25/2024  12:38 PM           2106 test_versions.sh
+
+
+inside sakila:
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         9/25/2024  12:38 PM            342 README.md
+-a----         9/25/2024  12:38 PM        3398269 sakila-mv-data.sql
+-a----         9/25/2024  12:38 PM          24121 sakila-mv-schema.sql
+
+The list of predefined SQL queries to be implemented in the application are as follows (consider both past and current data when answering all queries):  
+- List department(s) with maximum ratio of average female salaries to average men salaries 
+- List manager(s) who holds office for the longest duration. A person can be a manager for multiple departments at different time frames.
+- For each department, list number of employees born in each decade and their average salaries
+- List employees, who are female, born before Jan 1, 1990, makes more than 80K annually and hold a manager position
+- Find 1 degree of separation between 2 given employees E1 and E2:o1 degree: E1 --> D1 <-- E2 (E1 and E2 work at department D1 at the same time)
+- Find 2 degrees of separation between 2 given employees E1 and E2:o2 degrees: E1 --> D1 <-- E3 --> D2 <-- E2 (E1 and E3 work at D1 at the same time; E3 and E2 work at D2 at the same time
