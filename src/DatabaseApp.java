@@ -26,10 +26,12 @@ public class DatabaseApp {
                 System.out.println("6. Find 2 degrees of separation between two employees");
                 System.out.println("0. Exit");
 
-                int choice = scanner.nextInt();
+                //int choice = scanner.nextInt();
+                int option = getOption(scanner);
+
                 scanner.nextLine();  // consume newline
 
-                switch (choice) {
+                switch (option) {
                     case 1:
                         listMaxRatioDepartments(conn);
                         break;
@@ -58,6 +60,20 @@ public class DatabaseApp {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private static int getOption(Scanner scanner) {
+        int option = -1;
+        while (option < 0) {
+            System.out.print("Choose an option: ");
+            if (scanner.hasNextInt()) {
+                option = scanner.nextInt();
+            } else {
+                System.out.println("Invalid input. Please enter a number.");
+                scanner.next();  // Clear invalid input
+            }
+        }
+        return option;
     }
 
     private static void listMaxRatioDepartments(Connection conn) throws SQLException {
@@ -148,10 +164,8 @@ public class DatabaseApp {
 
     // Modify findOneDegreeSeparation method
     private static void findOneDegreeSeparation(Connection conn, Scanner scanner) throws SQLException {
-        System.out.println("Enter Emp No for E1: ");
-        int e1 = scanner.nextInt();
-        System.out.println("Enter Emp No for E2: ");
-        int e2 = scanner.nextInt();
+        int e1 = getEmployeeNumber(scanner, "E1");
+        int e2 = getEmployeeNumber(scanner, "E2");
 
         // Check if both employees exist
         if (!employeeExists(conn, e1)) {
@@ -178,12 +192,25 @@ public class DatabaseApp {
         }
     }
 
+
+    private static int getEmployeeNumber(Scanner scanner, String employeeName) {
+        int empNo = -1;
+        while (empNo < 0) {
+            System.out.print("Enter Emp No for " + employeeName + ": ");
+            if (scanner.hasNextInt()) {
+                empNo = scanner.nextInt();
+            } else {
+                System.out.println("Invalid input. Please enter a valid employee number.");
+                scanner.next();  // Clear invalid input
+            }
+        }
+        return empNo;
+    }
+
     // Modify findTwoDegreesSeparation method
     private static void findTwoDegreesSeparation(Connection conn, Scanner scanner) throws SQLException {
-        System.out.println("Enter Emp No for E1: ");
-        int e1 = scanner.nextInt();
-        System.out.println("Enter Emp No for E2: ");
-        int e2 = scanner.nextInt();
+        int e1 = getEmployeeNumber(scanner, "E1");
+        int e2 = getEmployeeNumber(scanner, "E2");
 
         // Check if both employees exist
         if (!employeeExists(conn, e1)) {
