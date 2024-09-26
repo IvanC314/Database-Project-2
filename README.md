@@ -15,13 +15,22 @@ Install the github from [Here](github.com/datacharmer/test_db)
 
  (Here is a text version of the file structure in case you need to explain what the project looks like to a friend who only speaks binary :)
 
- DATABASE-PROJECT-2/
-├── lib/
-│   └── mysql-connector-java-x.x.xx.jar  // MySQL Connector/J JAR file
-├── src/
-│   └── DatabaseApp.java                   
-└── text_db-master/
-    └── employees.sql
+
+
+    
+# How to run this
+Connector J is already installed in the lib folder so you don't need to worry about that at all. You may however need to delete the entire mysql-connector-j-9.0.0 DIRECTORY (not the jar file please) in order to get the program to run
+
+then you are going to need MySQL community server downloaded on your computer
+- follow the tutorial and create a database on your computer using the text_db-master folder
+    - If that doesn't make sense, follow the tutorial and it should make sense as you go. Basically populate your database using the github repo on your computer
+
+After that replace my password in DatabaseApp.java with your database password
+Run the java program
+
+We need to make that process simpler. 
+If it's true that you have to delete that directory, then we need to add it to a gitignore
+Also we should make the password ignorable or we should make the program prompt for your password
 
 
 
@@ -32,9 +41,13 @@ Password: BigBoyServerProject2!
 
 This is the output when I type the tree command in the database-project-2 folder
 
-├───lib
-├───src
-└───test_db-master
+ DATABASE-PROJECT-2/
+├── lib/
+│   └── mysql-connector-java-x.x.xx.jar  // MySQL Connector/J JAR file
+├── src/
+│   └── DatabaseApp.java                   
+└── text_db-master/
+    ├── employees.sql
     ├───images
     └───sakila
 
@@ -79,4 +92,5 @@ The list of predefined SQL queries to be implemented in the application are as f
 - List employees, who are female, born before Jan 1, 1990, makes more than 80K annually and hold a manager position
 - Find 1 degree of separation between 2 given employees E1 and E2:o1 degree: E1 --> D1 <-- E2 (E1 and E2 work at department D1 at the same time)
 - Find 2 degrees of separation between 2 given employees E1 and E2:o2 degrees: E1 --> D1 <-- E3 --> D2 <-- E2 (E1 and E3 work at D1 at the same time; E3 and E2 work at D2 at the same time
+
 
