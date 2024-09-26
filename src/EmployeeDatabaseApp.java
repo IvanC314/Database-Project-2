@@ -1,81 +1,3 @@
-// import java.sql.Connection;
-// import java.sql.DriverManager;
-// import java.sql.ResultSet;
-// import java.sql.SQLException;
-// import java.sql.Statement;
-// import java.util.Scanner;
-
-// public class DatabaseApp {
-//     private static final String URL = "jdbc:mysql://localhost:3306/employees";
-//     private static final String USER = "root";
-//     private static final String PASSWORD = "Google62";
-
-//     public static void main(String[] args) {
-//         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
-//             Scanner scanner = new Scanner(System.in);
-//             while (true) {
-//                 displayMenu();
-//                 int choice = scanner.nextInt();
-//                 switch (choice) {
-//                     case 1:
-//                         executeQuery1(conn);
-//                         break;
-//                     case 2:
-//                         executeQuery2(conn);
-//                         break;
-//                     // ... Add cases for other queries
-//                     case 0:
-//                         System.out.println("Exiting...");
-//                         return;
-//                     default:
-//                         System.out.println("Invalid choice. Please try again.");
-//                 }
-//             }
-//         } catch (SQLException e) {
-//             e.printStackTrace();
-//         }
-//     }
-
-//     private static void displayMenu() {
-//         System.out.println("\nEmployee Database Queries:");
-//         System.out.println("1. Departments with max ratio of avg female to male salaries");
-//         System.out.println("2. Managers with longest office duration");
-//         // ... Add other menu options
-//         System.out.println("0. Exit");
-//         System.out.print("Enter your choice: ");
-//     }
-
-//     private static void executeQuery1(Connection conn) throws SQLException {
-//         String query = ""; // SQL query for first requirement
-//         try (Statement stmt = conn.createStatement();
-//              ResultSet rs = stmt.executeQuery(query)) {
-//             // Process and display results
-//         }
-//     }
-
-//     private static void executeQuery2(Connection conn) throws SQLException {
-//         String query = """
-//             SELECT dept.dept_name, 
-//                    (AVG(CASE WHEN emp.gender = 'F' THEN sal.salary END) / 
-//                     AVG(CASE WHEN emp.gender = 'M' THEN sal.salary END)) AS female_to_male_ratio
-//             FROM employees emp
-//             JOIN salaries sal ON emp.emp_no = sal.emp_no
-//             JOIN dept_emp de ON emp.emp_no = de.emp_no
-//             JOIN departments dept ON de.dept_no = dept.dept_no
-//             GROUP BY dept.dept_name
-//             ORDER BY female_to_male_ratio DESC
-//             LIMIT 1;
-//         """;        
-//         System.out.println(query);
-//         try (Statement stmt = conn.createStatement();
-//              ResultSet rs = stmt.executeQuery(query)) {
-//             // Process and display results
-//         }
-//     }
-
-//     // ... Add methods for other queries
-// }
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -88,7 +10,7 @@ import java.util.Scanner;
 public class EmployeeDatabaseApp {
     private static final String URL = "jdbc:mysql://localhost:3306/employees";
     private static final String USER = "root";
-    private static final String PASSWORD = "Google62";
+    private static final String PASSWORD = "insert your password";
 
     public static void main(String[] args) {
         try {
