@@ -2,17 +2,17 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
 
 public class EmployeeDatabaseApp {
     private static final String URL = "jdbc:mysql://localhost:3306/employees";
-    private static final String USER = "root";
-    private static final String PASSWORD = "insert your password";
+    private static final String USER = "root"; 
+    private static String PASSWORD = "password";
 
     public static void main(String[] args) {
+
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
@@ -20,6 +20,8 @@ public class EmployeeDatabaseApp {
             e.printStackTrace();
             return;
         }
+
+
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             System.out.println("Connected to the database successfully.");
@@ -118,16 +120,7 @@ public class EmployeeDatabaseApp {
 
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
-            System.out.println("\nEmployees per decade and avg salaries per department:");
-            System.out.printf("%-15s %-10s %-15s %-20s %n", 
-                "Department", "Decade", "Num Employees", "Avg Salary");
-            System.out.println("------------------------------------------------------------------------------------------------------------------");
-            while (rs.next()) {
-                System.out.printf("%-15s %-10s %-15s %-10.2f %n", 
-                    rs.getString("dept_no"),
-                    rs.getInt("decade"), rs.getInt("num_employees"),
-                    rs.getDouble("avg_salary"));
-            }
+
         }
     }
 
@@ -229,39 +222,6 @@ public class EmployeeDatabaseApp {
                     System.out.println("No 2 degrees of separation found between the given employees.");
                 }
             }
-        }
-    }
-
-    private static void displayResults(ResultSet rs, String[] columns) throws SQLException {
-        ResultSetMetaData metaData = rs.getMetaData();
-        int columnCount = metaData.getColumnCount();
-
-        // Print column headers
-        for (String column : columns) {
-            System.out.printf("%-15s", column);
-        }
-        System.out.println();
-
-        // Print separator line
-        for (int i = 0; i < columns.length * 15; i++) {
-            System.out.print("-");
-        }
-        System.out.println();
-
-        // Print data rows
-        int rowCount = 0;
-        while (rs.next() && rowCount < 100) {
-            for (int i = 1; i <= columnCount; i++) {
-                System.out.printf("%-15s", rs.getString(i));
-            }
-            System.out.println();
-            rowCount++;
-        }
-
-        if (rowCount == 0) {
-            System.out.println("No results found.");
-        } else if (rowCount == 100) {
-            System.out.println("(Showing first 100 results)");
         }
     }
 }
