@@ -1,0 +1,7 @@
+{
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "mysql-connector-j-9.0.0/mysql-connector-j-9.0.0.jar"
+    ]
+}
