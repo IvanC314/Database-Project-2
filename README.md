@@ -25,12 +25,12 @@ then you are going to need MySQL community server downloaded on your computer
 - follow the tutorial and create a database on your computer using the text_db-master folder
     - If that doesn't make sense, follow the tutorial and it should make sense as you go. Basically populate your database using the github repo on your computer
 
-After that replace my password in DatabaseApp.java with your database password
 Run the java program
+Input your database password
+Select your query
 
 We need to make that process simpler. 
 If it's true that you have to delete that directory, then we need to add it to a gitignore
-Also we should make the password ignorable or we should make the program prompt for your password
 
 
 
