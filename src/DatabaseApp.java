@@ -219,11 +219,10 @@ public class DatabaseApp {
         return empNo;
     }
 
-    // Modify findTwoDegreesSeparation method
     private static void findTwoDegreesSeparation(Connection conn, Scanner scanner) throws SQLException {
         int e1 = getEmployeeNumber(scanner, "E1");
         int e2 = getEmployeeNumber(scanner, "E2");
-
+    
         // Check if both employees exist
         if (!employeeExists(conn, e1)) {
             System.out.println("Employee " + e1 + " does not exist.");
@@ -233,23 +232,26 @@ public class DatabaseApp {
             System.out.println("Employee " + e2 + " does not exist.");
             return;
         }
-
-        String sql = "SELECT D1.dept_no, D2.dept_no FROM dept_emp D1 " +
-                    "JOIN dept_emp D2 ON D1.emp_no = D2.emp_no " +
-                    "WHERE D1.emp_no = ? AND D2.emp_no = ? AND D1.to_date = D2.to_date;";
+    
+        String sql = "SELECT D1.dept_no AS dept_no1, D2.dept_no AS dept_no2 " +
+                     "FROM dept_emp D1 " +
+                     "JOIN dept_emp D2 ON D1.dept_no = D2.dept_no " +
+                     "WHERE D1.emp_no = ? AND D2.emp_no = ?;";
+    
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, e1);
             pstmt.setInt(2, e2);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    System.out.println("E1 and E2 have 2 degrees of separation between department " +
-                            rs.getString("D1.dept_no") + " and " + rs.getString("D2.dept_no"));
+                    System.out.println("E1 and E2 have 2 degrees of separation via department " +
+                                       rs.getString("dept_no1") + " and " + rs.getString("dept_no2"));
                 } else {
                     System.out.println("No 2 degrees of separation found.");
                 }
             }
         }
     }
+    
 
 
     // Function to find employees with exactly N degrees of separation
