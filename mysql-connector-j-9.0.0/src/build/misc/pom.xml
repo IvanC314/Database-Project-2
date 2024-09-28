@@ -23,8 +23,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.mysql</groupId>
-  <artifactId>@MYSQL_CJ_EXTENDED_PROD_NAME@</artifactId>
-  <version>@MYSQL_CJ_VERSION@</version>
+  <artifactId>MySQL</artifactId>
+  <version>9.0</version>
   <packaging>jar</packaging>
 
   <name>MySQL Connector/J</name>

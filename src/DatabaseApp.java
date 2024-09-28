@@ -9,13 +9,16 @@ public class DatabaseApp {
     // Database credentials
     private static final String DB_URL = "jdbc:mysql://localhost:3306/employees";
     private static final String USER = "root";
-    private static final String PASS = "BigBoyServerProject2!";
+    private static String PASS = "password";
 
     public static void main(String[] args) {
+        System.out.println("Enter your password: ");
+        Scanner scanner = new Scanner(System.in);
+        PASS = scanner.nextLine();
+
         try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS)) {
             System.out.println("Connected to the database!");
 
-            Scanner scanner = new Scanner(System.in);
             while (true) {
                 System.out.println("\nChoose an option:");
                 System.out.println("1. List department(s) with max ratio of average female salaries to average men salaries");
@@ -89,11 +92,10 @@ public class DatabaseApp {
                      "    FROM employees e " +
                      "    JOIN salaries s ON e.emp_no = s.emp_no " +
                      "    JOIN dept_emp d ON e.emp_no = d.emp_no " +
-                     "    WHERE s.to_date = '9999-01-01' " +  // Consider only current salaries
                      "    GROUP BY d.dept_no " +
                      ") AS salary_ratios " +
                      "GROUP BY dept_no " +
-                     "ORDER BY max_ratio DESC;";
+                     "ORDER BY max_ratio DESC LIMIT 100;";
     
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -104,7 +106,7 @@ public class DatabaseApp {
                 while (rs.next()) {
                     String deptNo = rs.getString("dept_no");
                     double maxRatio = rs.getDouble("max_ratio");
-                    System.out.printf("| %-14s | %-12.2f |\n", deptNo, maxRatio);
+                    System.out.printf("| %-14s | %-12.3f |\n", deptNo, maxRatio);
                 }
                 System.out.println("+----------------+--------------+");
             }
@@ -115,7 +117,7 @@ public class DatabaseApp {
     // 2. List managers with longest duration
     private static void listLongestServingManagers(Connection conn) throws SQLException {
         String sql = "SELECT emp_no, SUM(TIMESTAMPDIFF(DAY, from_date, to_date)) AS total_days FROM dept_manager " +
-                     "GROUP BY emp_no ORDER BY total_days DESC LIMIT 1;";
+                     "GROUP BY emp_no ORDER BY total_days DESC LIMIT 100;";
         try (PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 System.out.println("Manager Emp No: " + rs.getInt("emp_no") + ", Total Days: " + rs.getInt("total_days"));
@@ -128,23 +130,29 @@ public class DatabaseApp {
         String sql = "SELECT dept_no, FLOOR(YEAR(birth_date) / 10) * 10 AS decade, COUNT(*) AS employee_count, " +
                      "AVG(salary) AS avg_salary FROM employees " +
                      "JOIN salaries USING(emp_no) JOIN dept_emp USING(emp_no) " +
-                     "GROUP BY dept_no, decade;";
-        try (PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+                     "GROUP BY dept_no, decade LIMIT 100;";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql); 
+        ResultSet rs = pstmt.executeQuery()) {
+            System.out.println("+----------------+-----------+----------------+------------+"); 
+            System.out.println("| Department     | Decade    | Num Employees  | Avg Salary |");
+            System.out.println("+----------------+-----------+----------------+------------+"); 
             while (rs.next()) {
-                System.out.println("Dept: " + rs.getString("dept_no") +
-                                   ", Decade: " + rs.getInt("decade") +
-                                   ", Employees: " + rs.getInt("employee_count") +
-                                   ", Avg Salary: " + rs.getDouble("avg_salary"));
+                System.out.printf("| %-14s | %-9s | %-14s | %-10.2f |%n", 
+                    rs.getString("dept_no"),
+                    rs.getInt("decade"), rs.getInt("employee_count"),
+                    rs.getDouble("avg_salary"));
             }
+            System.out.println("+----------------+-----------+----------------+------------+"); 
+
         }
     }
 
     // 4. List high-earning female managers born before 1990
     private static void listHighEarningFemaleManagers(Connection conn) throws SQLException {
-        String sql = "SELECT emp_no FROM employees " +
+        String sql = "SELECT DISTINCT emp_no FROM employees " +
                      "JOIN salaries USING(emp_no) " +
                      "JOIN dept_manager USING(emp_no) " +
-                     "WHERE gender = 'F' AND birth_date < '1990-01-01' AND salary > 80000;";
+                     "WHERE gender = 'F' AND birth_date < '1990-01-01' AND salary > 80000 LIMIT 100;";
         try (PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 System.out.println("Female Manager Emp No: " + rs.getInt("emp_no"));
