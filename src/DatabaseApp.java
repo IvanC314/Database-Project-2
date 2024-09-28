@@ -24,6 +24,7 @@ public class DatabaseApp {
                 System.out.println("4. List female employees born before 1990 earning more than 80K annually and holding a manager position");
                 System.out.println("5. Find 1 degree of separation between two employees");
                 System.out.println("6. Find 2 degrees of separation between two employees");
+                System.out.println("7. Find employees with exactly X degrees of separation from an employee");
                 System.out.println("0. Exit");
 
                 //int choice = scanner.nextInt();
@@ -49,6 +50,9 @@ public class DatabaseApp {
                         break;
                     case 6:
                         findTwoDegreesSeparation(conn, scanner);
+                        break;
+                    case 7:
+                        findEmployeesWithDegreeSeparation(conn, scanner);
                         break;
                     case 0:
                         System.out.println("Exiting.");
@@ -238,5 +242,64 @@ public class DatabaseApp {
             }
         }
     }
+
+
+    // Function to find employees with exactly N degrees of separation
+    private static void findEmployeesWithDegreeSeparation(Connection conn, Scanner scanner) throws SQLException {
+        int e1 = getEmployeeNumber(scanner, "E1");
+        int degree = getDegreeOfSeparation(scanner);
+
+        // SQL query to find employees with exactly N degrees of separation
+        String sql = "WITH RECURSIVE EmployeeHierarchy AS (" +
+                    "    SELECT dept_emp.emp_no, dept_emp.dept_no, 0 AS level " +
+                    "    FROM dept_emp " +
+                    "    WHERE dept_emp.emp_no = ? " +
+                    "    UNION ALL " +
+                    "    SELECT d2.emp_no, d2.dept_no, eh.level + 1 " +
+                    "    FROM dept_emp d2 " +
+                    "    JOIN EmployeeHierarchy eh ON d2.dept_no = eh.dept_no AND d2.emp_no <> eh.emp_no " +
+                    "    WHERE eh.level < ? " +
+                    ") " +
+                    "SELECT DISTINCT emp_no FROM EmployeeHierarchy WHERE level = ? LIMIT 100;";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, e1);
+            pstmt.setInt(2, degree);
+            pstmt.setInt(3, degree);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                int count = 0;
+                while (rs.next()) {
+                    System.out.println("Employee ID: " + rs.getInt("emp_no"));
+                    count++;
+                }
+
+                if (count == 0) {
+                    System.out.println("No employees found with exactly " + degree + " degrees of separation.");
+                } else if (count == 100) {
+                    System.out.println("Only the first 100 employees are displayed.");
+                }
+            }
+        }
+    }
+
+    // Helper function to get degree of separation from the user
+    private static int getDegreeOfSeparation(Scanner scanner) {
+        int degree = -1;
+        while (degree < 0) {
+            System.out.print("Enter the degree of separation (must be 0 or greater): ");
+            if (scanner.hasNextInt()) {
+                degree = scanner.nextInt();
+                if (degree < 0) {
+                    System.out.println("Invalid input. Degree must be 0 or greater.");
+                }
+            } else {
+                System.out.println("Invalid input. Please enter a valid integer.");
+                scanner.next();  // Clear invalid input
+            }
+        }
+        return degree;
+    }
+
 
 }
