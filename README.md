@@ -209,3 +209,155 @@ The list of predefined SQL queries to be implemented in the application are as f
 - Find 1 degree of separation between 2 given employees E1 and E2:o1 degree: E1 --> D1 <-- E2 (E1 and E2 work at department D1 at the same time)
 - Find 2 degrees of separation between 2 given employees E1 and E2:o2 degrees: E1 --> D1 <-- E3 --> D2 <-- E2 (E1 and E3 work at D1 at the same time; E3 and E2 work at D2 at the same time
 
+
+
+I asked an AI chatbot to correct this function
+
+// Modify findTwoDegreesSeparation method
+    private static void findTwoDegreesSeparation(Connection conn, Scanner scanner) throws SQLException {
+        int e1 = getEmployeeNumber(scanner, "E1");
+        int e2 = getEmployeeNumber(scanner, "E2");
+
+        // Check if both employees exist
+        if (!employeeExists(conn, e1)) {
+            System.out.println("Employee " + e1 + " does not exist.");
+            return;
+        }
+        if (!employeeExists(conn, e2)) {
+            System.out.println("Employee " + e2 + " does not exist.");
+            return;
+        }
+
+        String sql = "SELECT D1.dept_no, D2.dept_no FROM dept_emp D1 " +
+                    "JOIN dept_emp D2 ON D1.emp_no = D2.emp_no " +
+                    "WHERE D1.emp_no = ? AND D2.emp_no = ? AND D1.to_date = D2.to_date;";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, e1);
+            pstmt.setInt(2, e2);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    System.out.println("E1 and E2 have 2 degrees of separation between department " +
+                            rs.getString("D1.dept_no") + " and " + rs.getString("D2.dept_no"));
+                } else {
+                    System.out.println("No 2 degrees of separation found.");
+                }
+            }
+        }
+    }
+
+
+    This is the response the chatbot gave me
+
+
+    1. Incorrect Query Logic (Self Join Issue)
+The SQL query attempts to join the same employee table (dept_emp) using emp_no for both D1 and D2 while passing two different employee numbers (e1 and e2). This can lead to incorrect results because it's not actually finding the two-degree separation logic (i.e., looking for employees with a common department or indirect connections). The query assumes that the same employees (D1.emp_no = D2.emp_no) are in different departments, which doesn't logically match finding two employees who share a connection indirectly.
+
+Fix: You need to clarify the business logic for what constitutes "two degrees of separation". Typically, you'd want to find a shared department between them, or another employee who has worked with both. The current SQL only compares the two employees directly.
+
+2. Referencing Non-Existing Column Alias in ResultSet
+In the ResultSet handling part of the code, you're trying to access rs.getString("D1.dept_no") and rs.getString("D2.dept_no"). However, D1.dept_no and D2.dept_no are not the actual column names returned by the query. In SQL, D1.dept_no and D2.dept_no are table aliases, not column names. This will result in a SQLException because the column names should be just dept_no.
+
+Fix: Change the getString calls to refer to rs.getString("dept_no"). Since you are selecting two columns with the same name from different tables, you can use aliases for the column names like D1.dept_no AS dept_no1, D2.dept_no AS dept_no2.
+
+3. Query Execution Logic (Dates Matching Constraint)
+The condition D1.to_date = D2.to_date in the query can be problematic. If the two employees have never worked in the same department or their employment periods don't overlap, this will fail to return any results. This might make the query overly restrictive and might prevent valid results from being returned.
+
+Fix: Adjust the logic based on the business rules. For example, if you want to check if both employees worked in the same department, you might not need to compare the to_date field at all.
+
+4. Possible SQL Injection
+Although you're using PreparedStatement, which is generally safe against SQL injection, the logic inside getEmployeeNumber(scanner, "E1") and getEmployeeNumber(scanner, "E2") isn't shown. Ensure that this method is sanitizing and validating user input.
+
+5. Edge Case Handling
+There’s no handling of situations like:
+
+What happens if either employee is not found in the dept_emp table but still exists?
+What if the employees exist but have never been assigned to a department?
+Handling possible null values for to_date in dept_emp if employees are still active.
+6. Redundant Conditions
+The SQL query condition D1.emp_no = ? AND D2.emp_no = ? doesn't make sense in context. Since you're looking for two different employees, you shouldn't be using both emp_no fields to compare them with both employees. You should be checking for common departments or intermediary connections rather than trying to match the emp_no across both D1 and D2.
+
+Improved SQL Logic
+Here’s an example of how the query logic can be restructured:
+
+If the goal is to find a common department between e1 and e2:
+sql
+Copy code
+SELECT D1.dept_no 
+FROM dept_emp D1 
+JOIN dept_emp D2 ON D1.dept_no = D2.dept_no 
+WHERE D1.emp_no = ? AND D2.emp_no = ?;
+If the goal is to find a shared intermediary employee that both e1 and e2 worked with:
+sql
+Copy code
+SELECT dept_no 
+FROM dept_emp 
+WHERE emp_no IN (SELECT emp_no FROM dept_emp WHERE dept_no IN (
+    SELECT dept_no FROM dept_emp WHERE emp_no = ?)) 
+AND emp_no = ?;
+Revised Code
+java
+Copy code
+private static void findTwoDegreesSeparation(Connection conn, Scanner scanner) throws SQLException {
+    int e1 = getEmployeeNumber(scanner, "E1");
+    int e2 = getEmployeeNumber(scanner, "E2");
+
+    // Check if both employees exist
+    if (!employeeExists(conn, e1)) {
+        System.out.println("Employee " + e1 + " does not exist.");
+        return;
+    }
+    if (!employeeExists(conn, e2)) {
+        System.out.println("Employee " + e2 + " does not exist.");
+        return;
+    }
+
+    String sql = "SELECT D1.dept_no AS dept_no1, D2.dept_no AS dept_no2 " +
+                 "FROM dept_emp D1 " +
+                 "JOIN dept_emp D2 ON D1.dept_no = D2.dept_no " +
+                 "WHERE D1.emp_no = ? AND D2.emp_no = ?;";
+
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        pstmt.setInt(1, e1);
+        pstmt.setInt(2, e2);
+        try (ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                System.out.println("E1 and E2 have 2 degrees of separation via department " +
+                                   rs.getString("dept_no1") + " and " + rs.getString("dept_no2"));
+            } else {
+                System.out.println("No 2 degrees of separation found.");
+            }
+        }
+    }
+}
+
+
+I have another funciton that may need to be modified. Here it is. Can you try to fix it?
+
+ private static void findOneDegreeSeparation(Connection conn, Scanner scanner) throws SQLException {
+        int e1 = getEmployeeNumber(scanner, "E1");
+        int e2 = getEmployeeNumber(scanner, "E2");
+
+        // Check if both employees exist
+        if (!employeeExists(conn, e1)) {
+            System.out.println("Employee " + e1 + " does not exist.");
+            return;
+        }
+        if (!employeeExists(conn, e2)) {
+            System.out.println("Employee " + e2 + " does not exist.");
+            return;
+        }
+
+        String sql = "SELECT D1.dept_no FROM dept_emp D1 JOIN dept_emp D2 ON D1.dept_no = D2.dept_no " +
+                    "WHERE D1.emp_no = ? AND D2.emp_no = ? AND D1.to_date = D2.to_date;";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, e1);
+            pstmt.setInt(2, e2);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    System.out.println("E1 and E2 worked in department " + rs.getString("dept_no") + " at the same time.");
+                } else {
+                    System.out.println("No 1 degree of separation found.");
+                }
+            }
+        }
+    }

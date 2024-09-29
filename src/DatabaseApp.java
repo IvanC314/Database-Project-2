@@ -178,7 +178,7 @@ public class DatabaseApp {
     private static void findOneDegreeSeparation(Connection conn, Scanner scanner) throws SQLException {
         int e1 = getEmployeeNumber(scanner, "E1");
         int e2 = getEmployeeNumber(scanner, "E2");
-
+    
         // Check if both employees exist
         if (!employeeExists(conn, e1)) {
             System.out.println("Employee " + e1 + " does not exist.");
@@ -188,21 +188,27 @@ public class DatabaseApp {
             System.out.println("Employee " + e2 + " does not exist.");
             return;
         }
-
-        String sql = "SELECT D1.dept_no FROM dept_emp D1 JOIN dept_emp D2 ON D1.dept_no = D2.dept_no " +
-                    "WHERE D1.emp_no = ? AND D2.emp_no = ? AND D1.to_date = D2.to_date;";
+    
+        // Modified SQL query
+        String sql = "SELECT D1.dept_no " +
+                     "FROM dept_emp D1 " +
+                     "JOIN dept_emp D2 ON D1.dept_no = D2.dept_no " +
+                     "WHERE D1.emp_no = ? AND D2.emp_no = ? " +
+                     "AND D1.from_date <= D2.to_date AND D1.to_date >= D2.from_date;"; // Check overlapping periods
+    
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, e1);
             pstmt.setInt(2, e2);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    System.out.println("E1 and E2 worked in department " + rs.getString("dept_no") + " at the same time.");
+                    System.out.println("E1 and E2 worked in the same department: " + rs.getString("dept_no"));
                 } else {
                     System.out.println("No 1 degree of separation found.");
                 }
             }
         }
     }
+    
 
 
     private static int getEmployeeNumber(Scanner scanner, String employeeName) {
