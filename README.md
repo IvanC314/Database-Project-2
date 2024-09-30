@@ -1,5 +1,10 @@
 # Database Project 2
- 
+
+ ## Members
+ - **Ethan Schrack**
+ - **Thomas Waller**
+ - **Ivan Cao**
+
 # Thomas's Thoughts and getting started.
 **He said we would need**
 - MySQL Community Server
