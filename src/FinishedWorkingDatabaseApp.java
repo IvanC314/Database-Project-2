@@ -1,7 +1,11 @@
-import java.sql.*;
-import java.util.Scanner;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class FinishedWorkingDatabaseApp {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/employees";
@@ -158,7 +162,7 @@ public class FinishedWorkingDatabaseApp {
                 hasResults = true;
                 String deptName = rs.getString("dept_name");
                 double ratio = rs.getDouble("ratio");
-                System.out.printf("| %-22s | %-12.2f |\n", deptName, ratio);
+                System.out.printf("| %-22s | %-12.3f |\n", deptName, ratio);
             }
             System.out.println("+------------------------+--------------+");
             if (!hasResults) {
@@ -330,9 +334,9 @@ public class FinishedWorkingDatabaseApp {
     
         String sql = "SELECT DISTINCT " +
                      "e1.first_name AS e1_first, e1.last_name AS e1_last, " +
-                     "d1.dept_name AS dept1, " +
-                     "e_int.first_name AS int_first, e_int.last_name AS int_last, " +
-                     "d2.dept_name AS dept2, " +
+                     "d1.dept_name AS dept1, d1.dept_no AS dept1no," +
+                     "e_int.first_name AS int_first, e_int.last_name AS int_last, e_int.emp_no AS e_int," +
+                     "d2.dept_name AS dept2, d2.dept_no AS dept2no, " +
                      "e2.first_name AS e2_first, e2.last_name AS e2_last " +
                      "FROM employees e1 " +
                      "JOIN dept_emp de1 ON e1.emp_no = de1.emp_no " +
@@ -345,6 +349,7 @@ public class FinishedWorkingDatabaseApp {
                      "JOIN employees e2 ON de2.emp_no = e2.emp_no " +
                      "WHERE e1.emp_no = ? AND e2.emp_no = ? " +
                      "AND e1.emp_no != e_int.emp_no AND e_int.emp_no != e2.emp_no " +
+                     "AND d1.dept_no != d2.dept_no " + 
                      "AND ((de1.from_date <= de_int.to_date AND de1.to_date >= de_int.from_date) " +
                      "     OR (de_int.from_date <= de1.to_date AND de_int.to_date >= de1.from_date)) " +
                      "AND ((de_int2.from_date <= de2.to_date AND de_int2.to_date >= de2.from_date) " +
@@ -356,23 +361,31 @@ public class FinishedWorkingDatabaseApp {
             pstmt.setInt(2, e2Id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 boolean found = false;
-                System.out.println("+--------------------+--------------------+------------------------+--------------------+--------------------+------------------------+--------------------+--------------------+");
-                System.out.println("| E1 First Name      | E1 Last Name       | Department 1           | Intermediary First | Intermediary Last  | Department 2           | E2 First Name      | E2 Last Name       |");
-                System.out.println("+--------------------+--------------------+------------------------+--------------------+--------------------+------------------------+--------------------+--------------------+");
+                System.out.println("+--------------------------+---------------------+-----------------+---------------------------+---------------------+--------------------------+");
+                System.out.println("| E1 Name                  | Department 1        | Intermediary No |     Intermediary Name     | Department 2        | E2 Name                  |");
+                System.out.println("+--------------------------+---------------------+-----------------+---------------------------+---------------------+--------------------------+");
                 while (rs.next()) {
                     found = true;
                     String e1First = rs.getString("e1_first");
                     String e1Last = rs.getString("e1_last");
+                    String e1String = e1First + " " + e1Last;
                     String dept1 = rs.getString("dept1");
+                    String dept1no = rs.getString("dept1no");
+                    String d1String = dept1no + " " + dept1;
+                    String intNo = rs.getString("e_int");
                     String intFirst = rs.getString("int_first");
                     String intLast = rs.getString("int_last");
+                    String intString = intFirst + " " +intLast;
                     String dept2 = rs.getString("dept2");
+                    String dept2no = rs.getString("dept2no");
+                    String d2String = dept2no + " " +dept2;
                     String e2First = rs.getString("e2_first");
                     String e2Last = rs.getString("e2_last");
-                    System.out.printf("| %-18s | %-18s | %-22s | %-18s | %-18s | %-22s | %-18s | %-18s |\n",
-                        e1First, e1Last, dept1, intFirst, intLast, dept2, e2First, e2Last);
+                    String e2String = e2First + " " +e2Last;
+                    System.out.printf("| %-24s | %-19s | %-15s | %-25s | %-19s | %-24s |\n",
+                        e1String, d1String, intNo, intString, d2String, e2String);
                 }
-                System.out.println("+--------------------+--------------------+------------------------+--------------------+--------------------+------------------------+--------------------+--------------------+");
+                System.out.println("+--------------------------+---------------------+-----------------+---------------------------+---------------------+--------------------------+");
                 if (!found) {
                     System.out.println("No 2 degrees of separation found between the employees.");
                 }
