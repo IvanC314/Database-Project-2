@@ -3,7 +3,7 @@ import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
 
-public class CompletelyHandCodedDapabaseApplicationFileForTestingPurposes {
+public class FinishedWorkingDatabaseApp {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/employees";
     private static final String USER = "root";
     private static String PASS = "password";
@@ -24,6 +24,7 @@ public class CompletelyHandCodedDapabaseApplicationFileForTestingPurposes {
                 System.out.println("4. List female employees born before 1990 earning more than 80K annually and holding a manager position");
                 System.out.println("5. Find 1 degree of separation between two employees");
                 System.out.println("6. Find 2 degrees of separation between two employees");
+                System.out.println("7. List all employees two degrees away from a given employee");
                 System.out.println("0. Exit");
 
                 int option = getOption(scanner);
@@ -36,6 +37,7 @@ public class CompletelyHandCodedDapabaseApplicationFileForTestingPurposes {
                     case 4: listHighEarningFemaleManagers(conn); break;
                     case 5: findOneDegreeSeparation(conn, scanner); break;
                     case 6: findTwoDegreesSeparation(conn, scanner); break;
+                    case 7: findAllTwoDegreesAway(conn, scanner); break;
                     case 0: System.out.println("Exiting."); return;
                     default: System.out.println("Invalid choice. Try again.");
                 }
@@ -47,12 +49,12 @@ public class CompletelyHandCodedDapabaseApplicationFileForTestingPurposes {
 
     private static int getOption(Scanner scanner) {
         int option = -1;
-        while (option < 0 || option > 6) {
-            System.out.print("Choose an option (0-6): ");
+        while (option < 0 || option > 7) {
+            System.out.print("Choose an option (0-7): ");
             if (scanner.hasNextInt()) {
                 option = scanner.nextInt();
-                if (option < 0 || option > 6) {
-                    System.out.println("Invalid option. Please enter a number between 0 and 6.");
+                if (option < 0 || option > 7) {
+                    System.out.println("Invalid option. Please enter a number between 0 and 7.");
                 }
             } else {
                 System.out.println("Invalid input. Please enter a number.");
@@ -60,6 +62,69 @@ public class CompletelyHandCodedDapabaseApplicationFileForTestingPurposes {
             }
         }
         return option;
+    }
+
+    private static void findAllTwoDegreesAway(Connection conn, Scanner scanner) throws SQLException {
+        String employeeName = getEmployeeName(scanner, "the employee");
+    
+        List<Integer> employeeIds = getEmployeeIds(conn, employeeName);
+    
+        if (employeeIds.isEmpty()) {
+            System.out.println("Employee not found.");
+            return;
+        }
+    
+        int employeeId = chooseEmployeeId(scanner, employeeName, employeeIds);
+    
+        String sql = "SELECT DISTINCT " +
+                     "e1.first_name AS input_first, e1.last_name AS input_last, " +
+                     "d1.dept_name AS dept1, " +
+                     "e2.first_name AS intermediate_first, e2.last_name AS intermediate_last, " +
+                     "d2.dept_name AS dept2, " +
+                     "e3.first_name AS output_first, e3.last_name AS output_last " +
+                     "FROM employees e1 " +
+                     "JOIN dept_emp de1 ON e1.emp_no = de1.emp_no " +
+                     "JOIN departments d1 ON de1.dept_no = d1.dept_no " +
+                     "JOIN dept_emp de2 ON d1.dept_no = de2.dept_no " +
+                     "JOIN employees e2 ON de2.emp_no = e2.emp_no " +
+                     "JOIN dept_emp de3 ON e2.emp_no = de3.emp_no " +
+                     "JOIN departments d2 ON de3.dept_no = d2.dept_no " +
+                     "JOIN dept_emp de4 ON d2.dept_no = de4.dept_no " +
+                     "JOIN employees e3 ON de4.emp_no = e3.emp_no " +
+                     "WHERE e1.emp_no = ? " +
+                     "AND e1.emp_no != e2.emp_no AND e2.emp_no != e3.emp_no AND e1.emp_no != e3.emp_no " +
+                     "AND ((de1.from_date <= de2.to_date AND de1.to_date >= de2.from_date) " +
+                     "     OR (de2.from_date <= de1.to_date AND de2.to_date >= de1.from_date)) " +
+                     "AND ((de3.from_date <= de4.to_date AND de3.to_date >= de4.from_date) " +
+                     "     OR (de4.from_date <= de3.to_date AND de4.to_date >= de3.from_date)) " +
+                     "LIMIT 1000";
+    
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, employeeId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                boolean found = false;
+                System.out.println("+--------------------+--------------------+------------------------+--------------------+--------------------+------------------------+--------------------+--------------------+");
+                System.out.println("| Input First Name   | Input Last Name    | Department 1           | Intermediate First | Intermediate Last  | Department 2           | Output First Name  | Output Last Name   |");
+                System.out.println("+--------------------+--------------------+------------------------+--------------------+--------------------+------------------------+--------------------+--------------------+");
+                while (rs.next()) {
+                    found = true;
+                    String inputFirst = rs.getString("input_first");
+                    String inputLast = rs.getString("input_last");
+                    String dept1 = rs.getString("dept1");
+                    String intermediateFirst = rs.getString("intermediate_first");
+                    String intermediateLast = rs.getString("intermediate_last");
+                    String dept2 = rs.getString("dept2");
+                    String outputFirst = rs.getString("output_first");
+                    String outputLast = rs.getString("output_last");
+                    System.out.printf("| %-18s | %-18s | %-22s | %-18s | %-18s | %-22s | %-18s | %-18s |\n",
+                        inputFirst, inputLast, dept1, intermediateFirst, intermediateLast, dept2, outputFirst, outputLast);
+                }
+                System.out.println("+--------------------+--------------------+------------------------+--------------------+--------------------+------------------------+--------------------+--------------------+");
+                if (!found) {
+                    System.out.println("No employees found two degrees away from the input employee.");
+                }
+            }
+        }
     }
 
     private static void listMaxRatioDepartments(Connection conn) throws SQLException {
@@ -246,59 +311,74 @@ public class CompletelyHandCodedDapabaseApplicationFileForTestingPurposes {
         }
     }
 
+
+    // The new reformatted version of the function
     private static void findTwoDegreesSeparation(Connection conn, Scanner scanner) throws SQLException {
         String e1Name = getEmployeeName(scanner, "E1");
         String e2Name = getEmployeeName(scanner, "E2");
-
+    
         List<Integer> e1Ids = getEmployeeIds(conn, e1Name);
         List<Integer> e2Ids = getEmployeeIds(conn, e2Name);
-
+    
         if (e1Ids.isEmpty() || e2Ids.isEmpty()) {
             System.out.println("One or both employees not found.");
             return;
         }
-
+    
         int e1Id = chooseEmployeeId(scanner, e1Name, e1Ids);
         int e2Id = chooseEmployeeId(scanner, e2Name, e2Ids);
-
-        String sql = "SELECT DISTINCT d1.dept_name AS dept1, d2.dept_name AS dept2, e.first_name, e.last_name " +
-                     "FROM dept_emp de1 " +
-                     "JOIN dept_emp de2 ON de1.emp_no = de2.emp_no " +
-                     "JOIN dept_emp de3 ON de2.dept_no = de3.dept_no " +
+    
+        String sql = "SELECT DISTINCT " +
+                     "e1.first_name AS e1_first, e1.last_name AS e1_last, " +
+                     "d1.dept_name AS dept1, " +
+                     "e_int.first_name AS int_first, e_int.last_name AS int_last, " +
+                     "d2.dept_name AS dept2, " +
+                     "e2.first_name AS e2_first, e2.last_name AS e2_last " +
+                     "FROM employees e1 " +
+                     "JOIN dept_emp de1 ON e1.emp_no = de1.emp_no " +
                      "JOIN departments d1 ON de1.dept_no = d1.dept_no " +
-                     "JOIN departments d2 ON de3.dept_no = d2.dept_no " +
-                     "JOIN employees e ON de2.emp_no = e.emp_no " +
-                     "WHERE de1.emp_no = ? AND de3.emp_no = ? " +
-                     "AND de1.emp_no != de3.emp_no " +
-                     "  AND ((de1.from_date <= de2.to_date AND de1.to_date >= de2.from_date) " +
-                     "       OR (de2.from_date <= de1.to_date AND de2.to_date >= de1.from_date)) " +
-                     "  AND ((de2.from_date <= de3.to_date AND de2.to_date >= de3.from_date) " +
-                     "       OR (de3.from_date <= de2.to_date AND de3.to_date >= de2.from_date)) " +
+                     "JOIN dept_emp de_int ON d1.dept_no = de_int.dept_no " +
+                     "JOIN employees e_int ON de_int.emp_no = e_int.emp_no " +
+                     "JOIN dept_emp de_int2 ON e_int.emp_no = de_int2.emp_no " +
+                     "JOIN departments d2 ON de_int2.dept_no = d2.dept_no " +
+                     "JOIN dept_emp de2 ON d2.dept_no = de2.dept_no " +
+                     "JOIN employees e2 ON de2.emp_no = e2.emp_no " +
+                     "WHERE e1.emp_no = ? AND e2.emp_no = ? " +
+                     "AND e1.emp_no != e_int.emp_no AND e_int.emp_no != e2.emp_no " +
+                     "AND ((de1.from_date <= de_int.to_date AND de1.to_date >= de_int.from_date) " +
+                     "     OR (de_int.from_date <= de1.to_date AND de_int.to_date >= de1.from_date)) " +
+                     "AND ((de_int2.from_date <= de2.to_date AND de_int2.to_date >= de2.from_date) " +
+                     "     OR (de2.from_date <= de_int2.to_date AND de2.to_date >= de_int2.from_date)) " +
                      "LIMIT 100";
-
+    
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, e1Id);
             pstmt.setInt(2, e2Id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 boolean found = false;
-                System.out.println("+------------------------+------------------------+--------------------+--------------------+");
-                System.out.println("| Department 1           | Department 2           | Intermediary First | Intermediary Last  |");
-                System.out.println("+------------------------+------------------------+--------------------+--------------------+");
+                System.out.println("+--------------------+--------------------+------------------------+--------------------+--------------------+------------------------+--------------------+--------------------+");
+                System.out.println("| E1 First Name      | E1 Last Name       | Department 1           | Intermediary First | Intermediary Last  | Department 2           | E2 First Name      | E2 Last Name       |");
+                System.out.println("+--------------------+--------------------+------------------------+--------------------+--------------------+------------------------+--------------------+--------------------+");
                 while (rs.next()) {
                     found = true;
+                    String e1First = rs.getString("e1_first");
+                    String e1Last = rs.getString("e1_last");
                     String dept1 = rs.getString("dept1");
+                    String intFirst = rs.getString("int_first");
+                    String intLast = rs.getString("int_last");
                     String dept2 = rs.getString("dept2");
-                    String firstName = rs.getString("first_name");
-                    String lastName = rs.getString("last_name");
-                    System.out.printf("| %-22s | %-22s | %-18s | %-18s |\n", dept1, dept2, firstName, lastName);
+                    String e2First = rs.getString("e2_first");
+                    String e2Last = rs.getString("e2_last");
+                    System.out.printf("| %-18s | %-18s | %-22s | %-18s | %-18s | %-22s | %-18s | %-18s |\n",
+                        e1First, e1Last, dept1, intFirst, intLast, dept2, e2First, e2Last);
                 }
-                System.out.println("+------------------------+------------------------+--------------------+--------------------+");
+                System.out.println("+--------------------+--------------------+------------------------+--------------------+--------------------+------------------------+--------------------+--------------------+");
                 if (!found) {
                     System.out.println("No 2 degrees of separation found between the employees.");
                 }
             }
         }
-    }
+    } // Reformatted version
 
     private static String getEmployeeName(Scanner scanner, String employeeLabel) {
         System.out.print("Enter the name of " + employeeLabel + ": ");

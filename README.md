@@ -9,11 +9,6 @@
 Turns out you don't need workbench. That's for the non cmdline folks
 
 Install the github from [Here](github.com/datacharmer/test_db)
- 
-
- My boi. That tutorial Sucked. Get the MySQL stuff downloaded on your computer. The tutorial commands may not work. Use ChatGPT to debug them. 
-
- (Here is a text version of the file structure in case you need to explain what the project looks like to a friend who only speaks binary :)
 
 
 
@@ -48,14 +43,4 @@ Domenick Tempesti
 
 Guther Holburn
 Anwar Krybus
-
-
-# Issues
-
-The second file seems to work except for 
-
-Q6
-
-It contains duplicates. (employees can be 1 degree away from themselves)
-And it only outputs one example of 2 degrees of separation when there are potentially very many
 
